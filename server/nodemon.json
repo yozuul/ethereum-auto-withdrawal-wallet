@@ -1,0 +1,10 @@
+{
+   "verbose": true,
+   "quiet": true,
+   "ext": "js json",
+   "watch": ["./**/*.*", "*.*"],
+   "ignore": ["node_modules/**/*.*", "./.*/**/*.*"],
+   "execMap": {
+       "js": "node --es-module-specifier-resolution=node ./server.js"
+   }
+}
