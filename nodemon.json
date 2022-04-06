@@ -5,6 +5,6 @@
    "watch": ["./**/*.*", "*.*"],
    "ignore": ["node_modules/**/*.*", "./.*/**/*.*"],
    "execMap": {
-       "js": "node --es-module-specifier-resolution=node ./server.js"
+       "js": "node --es-module-specifier-resolution=node ./server/index.js"
    }
 }

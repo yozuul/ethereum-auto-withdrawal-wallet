@@ -1,7 +1,7 @@
-import { sqlite, DataTypes } from './db/connect'
-import { dbSync } from './db/sync'
+import { sqlite, DataTypes } from '../db/connect'
+import { dbSync } from '../db/sync'
 
-const { STRING, DATE, DECIMAL } = DataTypes
+const { STRING, DATE, DECIMAL, BOOLEAN } = DataTypes
 
 const SettingsModel = sqlite.define('settings', {
     api_key: {
@@ -31,8 +31,19 @@ const WalletModel = sqlite.define('wallets', {
     privateKey: {
         type: STRING
     },
-    addedMethod: STRING,
-    balance: DECIMAL
+    addedMethod: {
+        type: STRING
+    },
+    balance: {
+        type: DECIMAL
+    },
+    balanceUsd: {
+        type: DECIMAL
+    },
+    active: {
+        type: BOOLEAN,
+        defaultValue: false
+    }
 }, {
     tableName: 'wallets',
 })

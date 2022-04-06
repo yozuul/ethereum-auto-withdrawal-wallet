@@ -1,13 +1,72 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" href="/favicon.ico" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vite App</title>
-  </head>
-  <body>
-    <div id="app"></div>
-    <script type="module" src="/src/main.js"></script>
-  </body>
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<!-- <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'">
+	<meta http-equiv="X-Content-Security-Policy" content="default-src 'self'; script-src 'self'"> -->
+	<title>Auto-Withdrawal Eth</title>
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Open+Sans&display=swap" rel="stylesheet">
+	<link rel="icon" type="image/x-icon" href="public/icons/favicon.ico">
+	<link rel="stylesheet" href="public/main.css">
+</head>
+
+<body id="App" class="">
+	<header>
+		<h3>Auto-Withdrawal Eth <sub>v. 1.0</sub></h3>
+	</header>
+	<div class="existWalletContainer">
+		<table class="title">
+			<thead>
+				<th class="wallet_num">№</th>
+				<th class="wallet_adress">Adress</th>
+				<th class="wallet_ETH_balance">ETH</th>
+				<th class="wallet_USD_balance">USD</th>
+				<th id="refreshBalanceSpinner" class="wallet_actions" align="center">
+					<button><img src="public/icons/refresh-page-option.png"></button>
+				</th>
+			</thead>
+		</table>
+		<table id="walletListTable" class="wallet">
+			<tbody></tbody>
+		</table>
+	</div>
+	<div class="logContainer">
+		<div id="logWindow"></div>
+		<div class="app_actions">
+			<button class="blocked" id="startAppBtn">Start</button>
+			<button id="addNewWalletBtn">Add</button>
+		</div>
+	</div>
+	<div id="addWalletPopup" class="popup hide" style="display: none;">
+		<h3>Adding a new Wallet</h3>
+		<input id="addWalletInput" type="text" placeholder="Please, enter a 12-words passphrase">
+		<button id="addNewWalletSubmitBtn">Submit</button>
+		<button id="closePopupBtn" class="newWallet"><img src="public/icons/close.png"></button>
+		<div class="loader hide">
+			<div class="inner one"></div>
+			<div class="inner two"></div>
+			<div class="inner three"></div>
+		 </div>
+	</div>
+	<div id="requestProcessPopup" class="popup hide" style="display: none;">
+		<h3 class="popupTitle">Adding a new wallet</h3>
+		<div class="loader">
+			<div class="inner one"></div>
+			<div class="inner two"></div>
+			<div class="inner three"></div>
+		 </div>
+		 <div id="addWalletSpinnerPhrase"></div>
+		 <h3>Please wait...</h3>
+		 <button id="closePopupBtn" class="closeAddWalletProceeBtn"><img src="public/icons/close.png"></button>
+	</div>
+	<div id="toast" class="popup hide" style="display: none;">
+		<h3></h3>
+	</div>
+	<script src="public/renedred.js"></script>
+</body>
+
 </html>
