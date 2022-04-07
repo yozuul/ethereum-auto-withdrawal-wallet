@@ -12,6 +12,7 @@ body {
 	-moz-user-select: none;
 	-ms-user-select: none;
 	user-select: none;
+	padding-top: 0;
 }
 button {
 	border: none;
@@ -35,6 +36,9 @@ header {
 h3 {
 	font-size: 18px;
 }
+header h3 {
+	margin-top: 0;
+}
 header sub {
 	font-size: 12px;
 	position: relative;
@@ -42,9 +46,10 @@ header sub {
 	color: #555;
 }
 .existWalletContainer {
-	min-height: 250px;
+	min-height: 220px;
+	padding-bottom: 30px;
 }
-.existWalletContainer, .logContainer {
+.existWalletContainer, .logContainer, .testContainer {
 	border-radius: 10px;
 	background: #F2F2F2;
 	padding: 15px 20px 15px 20px;
@@ -100,9 +105,17 @@ td.wallet_num {
 	flex-wrap: wrap;
 	flex-flow: column;
 }
+#logWindow {
+	max-height: 400px;
+	overflow-y: scroll;
+}
+.existWalletContainer {
+	min-height: 350px;
+}
 .app_actions {
 	align-self: flex-end;
 	margin-top: 20px;
+	display: flex;
 }
 .app_actions button, #addNewWalletSubmitBtn, .app_actions .stopState:hover, .app_actions button:hover {
 	font-size: 22px;
@@ -151,6 +164,7 @@ td.wallet_num {
 	border-radius: 10px;
 	transition:all 0.3s ease;
 	border: 2px solid #485461;
+	top: 100px;
 }
 .popup.hide {
 	opacity: 0;
@@ -188,7 +202,7 @@ td.wallet_num {
 .noclick {
 	pointer-events: none;
 }
-#addWalletInput {
+#addWalletInput, .testContainer input {
 	width: 100%;
 	outline: none;
 	height: 30px;
@@ -230,7 +244,31 @@ td.wallet_num {
 #requestProcessPopup h3 {
 	margin-bottom: 50px;
 }
-
+.testContainer h5 {
+	margin-bottom: 7px;
+	margin-top: 0;
+}
+.testContainer input {
+	margin-bottom: 10px;
+	width: calc(100% - 20px);
+}
+.testSendBtnContainer {
+	display: flex;
+	justify-content: space-between;
+}
+.testContainer .testSendBtnContainer input {
+	margin-bottom: 10px;
+	width: auto;
+	max-width: 100%;
+}
+.testSendBtnContainer button {
+	align-self: flex-end;
+	background: #28313B;
+	color: #fff;
+	padding: 10px 25px 10px 25px;
+	border-radius: 25px;
+	margin-bottom: 10px;
+}
 @keyframes rotating {
 	from{
 		 -webkit-transform: rotate(0deg);
@@ -239,11 +277,43 @@ td.wallet_num {
 		 -webkit-transform: rotate(360deg);
 	}
 }
-
 .rotate img {
 	animation: rotating 2s linear infinite;
 }
-
+.wallet_adress {
+	position: relative;
+	padding-right: 25px;
+}
+.wallet_adress button {
+	position: absolute;
+	right: 0;
+	top: 5px;
+}
+.wallet_adress img {
+	width: 15px;
+	height: auto;
+}
+.app_actions #generateExcel {
+	padding: 0;
+	width: 50px;
+	height: 50px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: 50%;
+}
+#generateExcel img {
+	width: 30px;
+	height: auto;
+}
+#generateExcelPopup .popupTitle {
+	margin-bottom: 40px;
+}
+#generateExcelPopup .subTitleBalance {
+	margin-top: 40px;
+	position: relative;
+	bottom: -15px;
+}
 /* SPINNER */
 .loader {
 	position: absolute;
@@ -253,59 +323,67 @@ td.wallet_num {
 	height: 34px;
 	border-radius: 50%;
 	perspective: 800px;
- }
- .loader.hide {
-	 display: none;
- }
- .inner {
+}
+.loader.hide {
+	display: none;
+}
+.inner {
 	position: absolute;
 	box-sizing: border-box;
 	width: 100%;
 	height: 100%;
 	border-radius: 50%;
- }
- .inner.one {
+}
+.inner.one {
 	left: 0%;
 	top: 0%;
 	animation: rotate-one 1s linear infinite;
 	border-bottom: 3px solid #EFEFFA;
- }
- .inner.two {
+}
+.inner.two {
 	right: 0%;
 	top: 0%;
 	animation: rotate-two 1s linear infinite;
 	border-right: 3px solid #EFEFFA;
- }
- .inner.three {
+}
+.inner.three {
 	right: 0%;
 	bottom: 0%;
 	animation: rotate-three 1s linear infinite;
 	border-top: 3px solid #EFEFFA;
- }
- @keyframes rotate-one {
+}
+
+@keyframes rotate-one {
 	0% {
-	  transform: rotateX(35deg) rotateY(-45deg) rotateZ(0deg);
+		transform: rotateX(35deg) rotateY(-45deg) rotateZ(0deg);
 	}
+
 	100% {
-	  transform: rotateX(35deg) rotateY(-45deg) rotateZ(360deg);
+		transform: rotateX(35deg) rotateY(-45deg) rotateZ(360deg);
 	}
- }
- @keyframes rotate-two {
+}
+
+@keyframes rotate-two {
 	0% {
-	  transform: rotateX(50deg) rotateY(10deg) rotateZ(0deg);
+		transform: rotateX(50deg) rotateY(10deg) rotateZ(0deg);
 	}
+
 	100% {
-	  transform: rotateX(50deg) rotateY(10deg) rotateZ(360deg);
+		transform: rotateX(50deg) rotateY(10deg) rotateZ(360deg);
 	}
- }
- @keyframes rotate-three {
+}
+
+@keyframes rotate-three {
 	0% {
-	  transform: rotateX(35deg) rotateY(55deg) rotateZ(0deg);
+		transform: rotateX(35deg) rotateY(55deg) rotateZ(0deg);
 	}
+
 	100% {
-	  transform: rotateX(35deg) rotateY(55deg) rotateZ(360deg);
+		transform: rotateX(35deg) rotateY(55deg) rotateZ(360deg);
 	}
- }
- #logWindow span, #logWindow i {
-	 color: #555;
- }
+}
+
+#logWindow span,
+#logWindow i {
+	color: #555;
+}

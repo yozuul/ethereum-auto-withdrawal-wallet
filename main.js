@@ -1,25 +1,34 @@
+const { v4: uuidv4 } = require('uuid');
+const { writeFile } = require('fs/promises')
+const { Buffer } = require('buffer')
 const { app, BrowserWindow } = require('electron')
-const path = require('path')
-// const { ipcMain } = require("electron");
 
-const ENV = process.env.NODE_ENV
+const { start } = require('./public/preload.js')
 
-const appPath = {
-	dev: './public/preload.js',
-	prod: './resources/app/public/preload.js'
-}
+const PORT = 5000
+const API_KEY = uuidv4();
+
+(async () => {
+	try {
+		const data = new Uint8Array(Buffer.from(API_KEY))
+		const promise = writeFile('API_KEY', data);
+		await promise;
+	} catch (err) {
+		console.error(err);
+	}
+})();
 
 const createWindow = () => {
 	const win = new BrowserWindow({
-		width: 1440,
-		height: 600,
 		webPreferences: {
 			nodeIntegration: true,
 			contextIsolation: false,
-			preload: path.resolve(ENV === 'development' ? appPath.dev : appPath.prod),
 		}
 	})
+	win.hide()
 	win.webContents.openDevTools()
+	win.maximize();
+	win.setMenuBarVisibility(false)
 	win.loadFile('index.html')
 }
 
@@ -30,6 +39,7 @@ app.whenReady().then(() => {
 			createWindow()
 		}
 	})
+	start(PORT)
 })
 
 app.on('window-all-closed', () => {
@@ -37,7 +47,3 @@ app.on('window-all-closed', () => {
 		app.quit()
 	}
 })
-
-// ipcMain.on("newData", (event, data) => {
-//    console.log(data.value); // Will output whatever was inside input element in HTML
-// });

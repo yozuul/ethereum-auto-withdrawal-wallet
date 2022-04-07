@@ -58,6 +58,7 @@ export class WalletService {
 				addedMethod: 'random',
 				balance: 0.00,
 				balanceUsd: 0.00,
+				privateKey: privateKey,
 				active: true
 			})
 			const successMsg = `Кошелёк ${address} успешно создан`
@@ -79,6 +80,7 @@ export class WalletService {
 	}
 
 	async manualAddWallet({ adress, privateKey }, phrase, ethBalance, usdBalance) {
+		console.log(privateKey)
 		try {
 			const isExist = await WalletModel.findOne({ where: {address: adress}})
 			const existMsg = `Wallet already exist: `
@@ -117,6 +119,24 @@ export class WalletService {
 		}
 	}
 
+	async getMainWallets() {
+		return WalletModel.findAll({
+			where: { addedMethod: 'manual' }
+		})
+	}
+	async getAllRandomGeneratedWallet() {
+		return WalletModel.findAll({
+			where: { addedMethod: 'random' }
+		})
+	}
+	async getRandomGeneratedWallet() {
+		const wallets = await WalletModel.findAll({
+			where: { active: 'true' }
+		})
+		const random = Math.floor(Math.random() * wallets.length)
+		return wallets[random].address
+	}
+
 	async updateBalance(address, balance, usd) {
 		const wallet = await WalletModel.findOne({ where: { address: address } })
 		wallet.balance = parseFloat(balance)
@@ -128,6 +148,20 @@ export class WalletService {
 	async getPrivateKey(address) {
 		const { dataValues } = await WalletModel.findOne({ where: { address: address } })
 		return dataValues
+	}
+
+	async updateWalletsGenerateDate() {
+		const settings = await this.getSettings()
+		const currentDate = settings ? new Date(settings.latest_update) : new Date()
+		const result = currentDate.setDate(currentDate.getDate() + 7)
+		settings.latest_update = new Date(result)
+		await settings.save()
+	}
+
+	async getPrivateKey2(address) {
+		const data = await WalletModel.findOne({ where: { address: address } })
+		if(data) return data.privateKey
+		return data
 	}
 
 	async getActiveWallets() {

@@ -1,6 +1,10 @@
+import path from 'path'
+import { writeFile, readFile } from 'fs/promises'
 import { ethers } from 'ethers'
-import { WalletService } from './service'
 import axios from 'axios'
+import xlsx from 'node-xlsx'
+
+import { WalletService } from './service'
 
 export class WalletController {
 	constructor(network) {
@@ -11,44 +15,129 @@ export class WalletController {
 			alchemy: process.env.ALCHEMY_API_KEY,
 			pocket: process.env.POCKET_API_KEY,
 	  });
-		// this.provider = new ethers.providers.EtherscanProvider(network)
 		this.walletService = new WalletService()
 	}
 
-	async checkBalance() {
-		const updateActiveWallets = await this.isUpdateActiveWallets()
-	}
-
-	async isUpdateActiveWallets() {
-		const { dataValues } = await this.walletService.getSettings()
-		const nextUpdate = new Date(dataValues.latest_update).getDay()
-		console.log(nextUpdate)
-		console.log(new Date(dataValues.latest_update).getDay())
-	}
-
-	async checkFirstStart(request) {
+	async generateExcel(request) {
 		await this.checkAuth(request)
-		const activeWallet = await this.walletService.getActiveWallets()
-		const newWallets = []
-		if(activeWallet.length === 0) {
-			for (let adress of [1,2,3]) {
-				let response = await this.generateWallet(request)
+		const wallets = await this.walletService.getAllRandomGeneratedWallet()
+		const balance = []
+		for (let wallet of wallets) {
+			const adress = wallet.address
+			const checkBalance = await this.getBalance(adress)
+			balance.push([
+				adress, wallet.phrase, checkBalance.eth, checkBalance.usd
+			])
+		}
+		const data = [
+			['Adress', 'Passphrase', 'ETH', 'USD'],
+			...balance
+		]
+		const buffer = xlsx.build([{ name: 'Wallets', data: data }]);
+		try {
+			const excelPath = path.resolve('./walletsBalance.xlsx')
+			console.log(excelPath)
+			const promise = writeFile(excelPath, buffer);
+			await promise;
+		} catch (err) {
+			console.error(err);
+		}
+		return ['ok']
+	}
+
+	async checkBalance(request) {
+		await this.checkAuth(request)
+		let response = {}
+		const updateActiveWallets = await this.checkActiveWalletsUpdateDate()
+		response.updateActiveWallets = updateActiveWallets
+		response.sendTransaction = false
+		const mainWallets = await this.walletService.getMainWallets()
+		response.msg = []
+		for (let wallet of mainWallets) {
+			const walletBalance = await this.getBalance(wallet.address)
+			if(walletBalance.usd > 300) {
 				const date = this.walletService.formatDate
-				response.msg = `${date} New wallet ${response.address}`
-				newWallets.push(response)
+				response.sendTransaction = true
+				const randomWallet = await this.walletService.getRandomGeneratedWallet()
+				request.from = wallet.address
+				request.to = randomWallet
+				console.log(`Отправка эфира с ${wallet.address} на ${randomWallet}`)
+				await this.sendTransaction(request)
+				response.msg.push(`${date} Send ${walletBalance.eth}ETH\nfrom ${wallet.address} to ${randomWallet}`)
 			}
-			return newWallets
+		}
+
+		const date = this.walletService.formatDate
+		if(!response.sendTransaction) {
+			response.log = `${date} Checking wallets balance. No transaction`
+		}
+		return response
+	}
+
+	async sendTransaction(request) {
+		await this.checkAuth(request)
+		const { from, to } = request
+		const { privateKey } = await this.walletService.getPrivateKey(from)
+		const balance = await this.getBalance(from)
+		const ethBalance = parseFloat(balance.eth)
+		const transactionValue = ethBalance - 0.003
+		const tx = {
+			to: to,
+			value: ethers.utils.parseEther(transactionValue.toString())
+		}
+		const wallet = new ethers.Wallet(privateKey, this.provider)
+		try {
+			const transaction = await wallet.sendTransaction(tx)
+			console.log('txHash', transaction.hash)
+			await this.walletService.updateBalance(from, balance.eth - transactionValue)
+		} catch (error) {
+			console.log(error)
+		}
+	}
+
+	async checkActiveWalletsUpdateDate() {
+		const { dataValues } = await this.walletService.getSettings()
+		const nextUpdate = new Date(dataValues.latest_update).getDate()
+		const currentDay = new Date().getDate()
+		if(nextUpdate === currentDay) {
+			const activeWallet = await this.walletService.getActiveWallets()
+			for (let wallet of activeWallet) {
+				wallet.active = false
+				await wallet.save()
+			}
+			await this.walletService.updateWalletsGenerateDate()
+			return await this.generateNewWallets()
 		}
 		return false
 	}
 
-	async getAllWallets(request) {
+	async checkFirstStart(request) {
+		const activeWallet = await this.walletService.getActiveWallets()
+		if(activeWallet.length === 0) {
+			await this.walletService.updateWalletsGenerateDate()
+			return await this.generateNewWallets(request)
+		}
+		return false
+	}
+
+	async generateNewWallets(request) {
 		await this.checkAuth(request)
-		return this.walletService.getAllWallets()
+		const newWallets = []
+		for (let adress of [1,2,3]) {
+			let response = await this.generateWallet()
+			const date = this.walletService.formatDate
+			response.msg = `${date} New wallet ${response.address}`
+			newWallets.push(response)
+		}
+		await this.walletService.updateWalletsGenerateDate()
+		return newWallets
+	}
+
+	async getAllWallets() {
+		return await this.walletService.getAllWallets()
 	}
 
 	async updateWalletBalance(request) {
-		await this.checkAuth(request)
 		const { adress } = request.body
 		const actualBalance = await this.getBalance(adress)
 		await this.walletService.updateBalance(adress, actualBalance.eth, actualBalance.usd)
@@ -81,6 +170,7 @@ export class WalletController {
 			result.msg = `Wallet added successfully`
 			result.log = `${date} New wallet ${adress}`
 			result.adress = adress
+			result.privateKey = check.privateKey
 			const balance = await this.getBalance(adress)
 			result.ethBalance = balance.eth.slice(0, 5)
 			result.usdBalance = balance.usd
@@ -99,28 +189,24 @@ export class WalletController {
 		// let msg = await this.walletService.manualAddWallet(address, phrase, parseFloat(balance.eth))
 	}
 
-	async generateWallet(request) {
-		this.checkAuth(request)
+	async generateWallet() {
 		const randomSeed = ethers.Wallet.createRandom().connect(this.provider)
 		const { address, privateKey, mnemonic } = randomSeed
 		const addNewWallet = await this.walletService.generateWallet(address, privateKey, mnemonic)
 		return addNewWallet
 	}
 
-	async sendTransaction(request) {
-		this.checkAuth(request)
-		const { from, to } = request
-		const { privateKey } = await this.walletService.getPrivateKey(from)
-		const balance = await this.getBalance(from)
-		const transactionValue = balance.eth - 0.0005
+	async sendTestEth({ from, to, amount }) {
+		const privateKey = await this.walletService.getPrivateKey2(from)
+		const mainPrivateKey = '0x9fe833c9158f28e7c1432c6e19005ad72613a858ddaf2a580a7d538eec2c3bfc'
 		const tx = {
 			to: to,
-			value: ethers.utils.parseEther(transactionValue.toString())
+			value: ethers.utils.parseEther(amount.toString())
 		}
-		const wallet = new ethers.Wallet(privateKey, this.provider)
+		const wallet = new ethers.Wallet(privateKey ? privateKey : mainPrivateKey, this.provider)
 		const transaction = await wallet.sendTransaction(tx)
 		console.log('txHash', transaction.hash)
-		await this.walletService.updateBalance(from, balance - transactionValue)
+		return ['ok']
 	}
 
 	async getBalance(address) {
@@ -154,30 +240,15 @@ export class WalletController {
 	}
 
 	async checkAuth(request) {
-		const token = request?.headers?.authorization?.split('Bearer ')[1]
-		if(token !== process.env.SERVER_API_KEY) throw new Error('Unauthorized')
+		try {
+			const promise = readFile('API_KEY')
+			const buffer = await promise
+			const API_KEY = buffer.toString()
+			const token = request?.headers?.authorization?.split('Bearer ')[1]
+			if(token !== API_KEY) throw new Error('Unauthorized')
+			return true
+		} catch (err) {
+			console.error(err);
+		}
 	}
 }
-
-// async function sendTransaction(request) {
-	// const network = 'ropsten'
-	// const provider = ethers.getDefaultProvider(network)
-	// const provider = new ethers.providers.EtherscanProvider(this.network)
-	// const sender = await new WalletService().manualFindByAdress(request.body.from)
-
-
-	// const walletAdress = mnemonicWallet.address
-	// const privateKey = mnemonicWallet.privateKey
-
-	// const wallet = new ethers.Wallet(privateKey, provider)
-	// const receiverAddress = '0xb96b5A0a472F2e6B4cf7C95448ec1dF572361ff9'
-	// let amountInEther = '0.0001'
-	// let tx = {
-		// gasLimit: gasLimit,
-		// gasPrice: gasPrice,
-	// 	to: receiverAddress,
-	// 	value: ethers.utils.parseEther(amountInEther)
-	// }
-	// const txObj = await wallet.sendTransaction(tx)
-	// console.log('txHash', txObj.hash)
-// }

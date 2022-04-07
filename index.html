@@ -31,19 +31,30 @@
 			</thead>
 		</table>
 		<table id="walletListTable" class="wallet">
-			<tbody></tbody>
+			<tbody>
+			</tbody>
 		</table>
 	</div>
 	<div class="logContainer">
-		<div id="logWindow"></div>
+		<div id="logWindow">
+		</div>
 		<div class="app_actions">
+			<button onclick="generateExcel()" id="generateExcel"><img src="public/icons/excel.png"></button>
 			<button class="blocked" id="startAppBtn">Start</button>
 			<button id="addNewWalletBtn">Add</button>
 		</div>
 	</div>
+	<!-- <div class="testContainer">
+		<div><h5>From</h5> <input type="text" id="sendFromTestEthInput" class="sendFrom" value="0x7C985582df0dC7F93F678D59B1A5E82508780496"></div>
+		<div><h5>To</h5> <input placeholder="to" id="sendToTestEthInput" type="text" class="sendTo" value="0xf83a0bAa98bCd6B8fc0D13464AeE847e8aAA09bd"></div>
+		<div class="testSendBtnContainer">
+			<input id="sendToTestEthAmountInput"  type="text" sendAmount placeholder="сумма" value="0.012">
+			<button id="sendTest" onclick="sendTestEth()">Отправить</button>
+		</div>
+	</div> -->
 	<div id="addWalletPopup" class="popup hide" style="display: none;">
 		<h3>Adding a new Wallet</h3>
-		<input id="addWalletInput" type="text" placeholder="Please, enter a 12-words passphrase">
+		<input name="new" autocomplete="false" id="addWalletInput" type="text" placeholder="Please, enter a 12-words passphrase">
 		<button id="addNewWalletSubmitBtn">Submit</button>
 		<button id="closePopupBtn" class="newWallet"><img src="public/icons/close.png"></button>
 		<div class="loader hide">
@@ -63,10 +74,21 @@
 		 <h3>Please wait...</h3>
 		 <button id="closePopupBtn" class="closeAddWalletProceeBtn"><img src="public/icons/close.png"></button>
 	</div>
+	<div id="generateExcelPopup" class="popup hide" style="display: none;">
+		<h3 class="popupTitle">Update wallets balance</h3>
+		<div class="loader">
+			<div class="inner one"></div>
+			<div class="inner two"></div>
+			<div class="inner three"></div>
+		 </div>
+		 <div id="addWalletSpinnerPhrase"></div>
+		 <h3 class="subTitleBalance">Please wait...</h3>
+		 <!-- <button id="closePopupBtn" class="closeGenerateExcelPopup"><img src="public/icons/close.png"></button> -->
+	</div>
 	<div id="toast" class="popup hide" style="display: none;">
 		<h3></h3>
 	</div>
-	<script src="public/renedred.js"></script>
+	<script src="public/renderer.js"></script>
 </body>
 
 </html>
