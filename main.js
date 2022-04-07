@@ -26,7 +26,7 @@ const createWindow = () => {
 		}
 	})
 	win.hide()
-	win.webContents.openDevTools()
+	// win.webContents.openDevTools()
 	win.maximize();
 	win.setMenuBarVisibility(false)
 	win.loadFile('index.html')

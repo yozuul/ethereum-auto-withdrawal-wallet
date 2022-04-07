@@ -81,14 +81,17 @@ td.wallet_num {
 .wallet {
 	counter-reset: rowNumber;
 }
+.wallet tr {
+	position: relative;
+}
 .wallet tr::before {
 	display: table-cell;
 	counter-increment: rowNumber;
 	content: counter(rowNumber) ".";
 	text-align: right;
-	position: relative;
-	bottom: -2px;
-	right: -2px;
+	position: absolute;
+	bottom: 4px;
+	left: 2px;
 }
 .wallet th::before {
 	content: '' !important;
